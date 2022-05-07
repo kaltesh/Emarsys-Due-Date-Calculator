@@ -3,6 +3,7 @@ package com.company;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class Calculator {
 
@@ -28,8 +29,6 @@ public class Calculator {
     private final int startOfWorkdayMinutes;
     private final int endOfWorkdayHours;
     private final int endOfWorkdayMinutes;
-    private final int workdayStartInMinutes;
-    private final int workdayEndInMinutes;
 
     /**
      * @param startOfWorkdayHours   first working hour of working day 24-hour format
@@ -43,8 +42,6 @@ public class Calculator {
         this.startOfWorkdayMinutes = startOfWorkdayMinutes;
         this.endOfWorkdayHours = endOfWorkdayHours;
         this.endOfWorkdayMinutes = endOfWorkdayMinutes;
-        this.workdayStartInMinutes = calculateTimeInMinutes(startOfWorkdayHours, startOfWorkdayMinutes);
-        this.workdayEndInMinutes = calculateTimeInMinutes(endOfWorkdayHours, endOfWorkdayMinutes);
     }
 
     /**
@@ -54,19 +51,19 @@ public class Calculator {
      * @param date the time and date of submitted request as String
      * @return the time and date of submitted request as Date
      */
-    public Calendar timeDateConverter(String date) {
-        Calendar calendar = Calendar.getInstance();
+    public Date timeDateConverter(String date) {
+        Date submitTimeAndDate;
         if (!date.trim().equals("")) {
             SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
             try {
-                calendar.setTime(sdFormat.parse(date));
+                submitTimeAndDate = sdFormat.parse(date);
             } catch (ParseException e) {
                 throw new RuntimeException(e.getMessage());
             }
         } else {
             throw new RuntimeException("Please provide time and date of submission");
         }
-        return calendar;
+        return submitTimeAndDate;
     }
 
     /**
@@ -74,8 +71,8 @@ public class Calculator {
      *
      * @param submitDate date of request
      */
-    public void isSubmitInThePast(Calendar submitDate) {
-        Calendar currentDate = Calendar.getInstance();
+    public void isSubmitInThePast(Date submitDate) {
+        Date currentDate = new Date();
         if (submitDate.compareTo(currentDate) < 0)
             throw new RuntimeException("Please provide a future date for submission");
     }
@@ -97,13 +94,17 @@ public class Calculator {
      * @param timeAndDateToCheck time and date to check
      * @return true if time and date are within working hours
      */
-    public boolean isGivenTimeInWorkingHours(Calendar timeAndDateToCheck) {
-        int weekDay = timeAndDateToCheck.get(Calendar.DAY_OF_WEEK);
+    public boolean isGivenTimeInWorkingHours(Date timeAndDateToCheck) {
+        int workdayStartInMinutes = calculateTimeInMinutes(startOfWorkdayHours, startOfWorkdayMinutes);
+        int workdayEndInMinutes = calculateTimeInMinutes(endOfWorkdayHours, endOfWorkdayMinutes);
+        Calendar tracker = Calendar.getInstance();
+        tracker.setTime(timeAndDateToCheck);
+        int weekDay = tracker.get(Calendar.DAY_OF_WEEK);
         if (weekDay == 1 || weekDay == 7) {
             return false;
         }
-        int hourOfSubmit = timeAndDateToCheck.get(Calendar.HOUR_OF_DAY);
-        int minuteOfSubmit = timeAndDateToCheck.get(Calendar.MINUTE);
+        int hourOfSubmit = tracker.get(Calendar.HOUR_OF_DAY);
+        int minuteOfSubmit = tracker.get(Calendar.MINUTE);
         int timeOfSubmitInMinutes = hourOfSubmit * 60 + minuteOfSubmit;
         return timeOfSubmitInMinutes >= workdayStartInMinutes
                 && timeOfSubmitInMinutes < workdayEndInMinutes;
@@ -116,48 +117,34 @@ public class Calculator {
      * @param turnaround        amount of time for request completion
      * @return estimated time and date for request completion
      */
-    public Calendar calculateDueDateAndTime(Calendar submitTimeAndDate, int turnaround) {
+    public Date calculateDueDateAndTime(Date submitTimeAndDate, int turnaround) {
         int turnaroundInMinutes = turnaround * 60;
-        Calendar timeTracker = submitTimeAndDate;
-        System.out.println(timeTracker.getTimeInMillis()/1000/60);
-        int timeOfSubmitInMinutes = calculateTimeInMinutes(timeTracker.get(Calendar.HOUR_OF_DAY), (timeTracker.get(Calendar.MINUTE)));
-        int firstDaysWorkInMinutes = workdayEndInMinutes - timeOfSubmitInMinutes;
-        if (firstDaysWorkInMinutes > turnaroundInMinutes) {
-            timeTracker.add(Calendar.MINUTE, turnaroundInMinutes);
-            return timeTracker;
-        } else {
-            timeTracker = skipDay(timeTracker);
-            turnaroundInMinutes -= firstDaysWorkInMinutes;
-        }
-        int daysWork = workdayEndInMinutes - workdayStartInMinutes;
+        Calendar timeTracker = Calendar.getInstance();
+        timeTracker.setTime(submitTimeAndDate);
         while (turnaroundInMinutes > 0) {
-            if (isWeekend(timeTracker)) {
-                timeTracker = skipDay(timeTracker);
-            } else if (turnaroundInMinutes >= daysWork) {
-                timeTracker = skipDay(timeTracker);
-                turnaroundInMinutes -= daysWork;
+            if (isWeekend(timeTracker.getTime())) {
+                timeTracker.add(Calendar.DATE, 1);
+                timeTracker.set(Calendar.HOUR_OF_DAY, startOfWorkdayHours);
+            } else if (!isGivenTimeInWorkingHours(timeTracker.getTime())) {
+                timeTracker.add(Calendar.DATE, 1);
+                timeTracker.set(Calendar.HOUR_OF_DAY, startOfWorkdayHours);
             } else {
-                timeTracker.add(Calendar.MINUTE, turnaroundInMinutes);
-                turnaroundInMinutes = 0;
+                timeTracker.add(Calendar.MINUTE, 1);
+                turnaroundInMinutes = turnaroundInMinutes - 1;
             }
         }
-        return timeTracker;
-    }
-
-    public Calendar skipDay(Calendar timeTracker) {
-        timeTracker.add(Calendar.DATE, 1);
-        timeTracker.set(Calendar.HOUR_OF_DAY, startOfWorkdayHours);
-        timeTracker.set(Calendar.MINUTE, startOfWorkdayMinutes);
-        return timeTracker;
+        return timeTracker.getTime();
     }
 
     /**
      * Checks if given date is on weekend
      *
-     * @param weekendTracker date to check
+     * @param submitTimeAndDate date to check
      * @return true if date is on weekend
      */
-    public boolean isWeekend(Calendar weekendTracker) {
+    public boolean isWeekend(Date submitTimeAndDate) {
+        Calendar weekendTracker = Calendar.getInstance();
+        weekendTracker.setTime(submitTimeAndDate);
         int weekDay = weekendTracker.get(Calendar.DAY_OF_WEEK);
         return weekDay == 1 || weekDay == 7;
     }

@@ -1,6 +1,5 @@
 package com.company;
 
-import java.util.Calendar;
 import java.util.Date;
 
 public class Main {
@@ -10,12 +9,12 @@ public class Main {
         int START_OF_WORKDAY_MINUTES = 0;
         int END_OF_WORKDAY_HOURS = 17;
         int END_OF_WORKDAY_MINUTES = 0;
-        int turnAround = 2;
-        String submitTimeAndDate = "09/15/03/06/2022";
+        int turnAround = 80;
+        String submitTimeAndDate = "09/15/25/05/2022";
         Calculator calculator = new Calculator(START_OF_WORKDAY_HOURS, START_OF_WORKDAY_MINUTES,
                 END_OF_WORKDAY_HOURS, END_OF_WORKDAY_MINUTES);
 
-        Calendar submitDate = calculator.timeDateConverter(submitTimeAndDate);
+        Date submitDate = calculator.timeDateConverter(submitTimeAndDate);
 
         calculator.isSubmitInThePast(submitDate);
 
@@ -25,7 +24,7 @@ public class Main {
             System.exit(0);
         }
 
-        Calendar endDate = calculator.calculateDueDateAndTime(submitDate, turnAround);
-        System.out.println("Estimated time and date for request completion:\n" + endDate.getTime());
+        Date endDate = calculator.calculateDueDateAndTime(submitDate, turnAround);
+        System.out.println("Estimated time and date for request completion:\n" + endDate);
     }
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,10 +23,10 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing converting date and time with valid input")
     void testConvertingWithValidInput() {
-        Calendar date = Calendar.getInstance();
+        Date date;
         SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
         try {
-            date.setTime(sdFormat.parse("16/15/25/05/2022"));
+            date = sdFormat.parse("16/15/25/05/2022");
             assertEquals(date, calculator.timeDateConverter("16/15/25/05/2022"));
         } catch (ParseException e) {
             e.printStackTrace();
@@ -51,9 +52,9 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing if submission is in the past")
     public void testWithPastSubmit() {
-        Calendar submitDate = Calendar.getInstance();
-        submitDate.set(2018, Calendar.DECEMBER, 31, 59, 59, 59);
-//        Date submitDate = calendar.getTime();
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(2018, Calendar.DECEMBER, 31, 59, 59, 59);
+        Date submitDate = calendar.getTime();
         Throwable exception = assertThrows(
                 RuntimeException.class, () -> calculator.isSubmitInThePast(submitDate));
         assertEquals("Please provide a future date for submission", exception.getMessage());
@@ -74,10 +75,10 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing if given time is in working hours")
     public void isGivenTimeInWorkingHoursTest() {
-        Calendar date = Calendar.getInstance();
+        Date date;
         SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
         try {
-            date.setTime(sdFormat.parse("16/15/25/05/2022"));
+            date = sdFormat.parse("16/15/25/05/2022");
             assertTrue(calculator.isGivenTimeInWorkingHours(date));
         } catch (ParseException e) {
             e.printStackTrace();
@@ -87,10 +88,10 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing if given time is not in working hours")
     public void isGivenTimeNotInWorkingHoursTest() {
-        Calendar date = Calendar.getInstance();
+        Date date;
         SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
         try {
-            date.setTime(sdFormat.parse("19/15/25/05/2022"));
+            date = sdFormat.parse("19/15/25/05/2022");
             assertFalse(calculator.isGivenTimeInWorkingHours(date));
         } catch (ParseException e) {
             e.printStackTrace();
@@ -100,14 +101,14 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing due date calculation is correct with a short period")
     public void calculateDueDateAndTimeTestShort() {
-        Calendar submitDateAndTime = Calendar.getInstance();
-        Calendar dueDateAndTime = Calendar.getInstance();
+        Date submitDateAndTime;
+        Date dueDateAndTime;
         int turnaround = 2;
         SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
         try {
-            submitDateAndTime.setTime(sdFormat.parse("9/15/25/05/2022"));
-            dueDateAndTime.setTime(sdFormat.parse("11/15/25/05/2022"));
-            assertEquals(dueDateAndTime.getTime(), calculator.calculateDueDateAndTime(submitDateAndTime, turnaround).getTime());
+            submitDateAndTime = sdFormat.parse("9/15/25/05/2022");
+            dueDateAndTime = sdFormat.parse("11/15/25/05/2022");
+            assertEquals(dueDateAndTime, calculator.calculateDueDateAndTime(submitDateAndTime, turnaround));
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -116,15 +117,13 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing due date calculation is correct with a 4 days long period")
     public void calculateDueDateAndTimeTestLong() {
-        Calendar submitDateAndTime = Calendar.getInstance();
-        Calendar dueDateAndTime = Calendar.getInstance();
+        Date submitDateAndTime;
+        Date dueDateAndTime;
         int turnaround = 32;
         SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
         try {
-//            calendar.setTime(sdFormat.parse(date));
-
-            submitDateAndTime.setTime(sdFormat.parse("10/15/23/05/2022"));
-            dueDateAndTime.setTime(sdFormat.parse("10/15/27/05/2022"));
+            submitDateAndTime = sdFormat.parse("10/15/23/05/2022");
+            dueDateAndTime = sdFormat.parse("10/15/27/05/2022");
             assertEquals(dueDateAndTime, calculator.calculateDueDateAndTime(submitDateAndTime, turnaround));
         } catch (ParseException e) {
             e.printStackTrace();
@@ -134,13 +133,13 @@ class CalculatorTest {
     @Test
     @DisplayName("Testing due date calculation is correct with a period over weekend")
     public void calculateDueDateAndTimeTestWeekend() {
-        Calendar submitDateAndTime = Calendar.getInstance();
-        Calendar dueDateAndTime = Calendar.getInstance();
+        Date submitDateAndTime;
+        Date dueDateAndTime;
         int turnaround = 80;
         SimpleDateFormat sdFormat = new SimpleDateFormat("HH/mm/dd/MM/yyyy");
         try {
-            submitDateAndTime.setTime(sdFormat.parse("10/15/23/05/2022"));
-            dueDateAndTime.setTime(sdFormat.parse("10/15/06/06/2022"));
+            submitDateAndTime = sdFormat.parse("10/15/23/05/2022");
+            dueDateAndTime = sdFormat.parse("10/15/06/06/2022");
             assertEquals(dueDateAndTime, calculator.calculateDueDateAndTime(submitDateAndTime, turnaround));
         } catch (ParseException e) {
             e.printStackTrace();
