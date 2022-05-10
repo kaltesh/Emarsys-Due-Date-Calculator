@@ -98,10 +98,8 @@ public class Calculator {
      * @return true if time and date are within working hours
      */
     public boolean isGivenTimeInWorkingHours(Calendar timeAndDateToCheck) {
-        int weekDay = timeAndDateToCheck.get(Calendar.DAY_OF_WEEK);
-        if (weekDay == 1 || weekDay == 7) {
+        if (isWeekend(timeAndDateToCheck))
             return false;
-        }
         int hourOfSubmit = timeAndDateToCheck.get(Calendar.HOUR_OF_DAY);
         int minuteOfSubmit = timeAndDateToCheck.get(Calendar.MINUTE);
         int timeOfSubmitInMinutes = hourOfSubmit * 60 + minuteOfSubmit;
@@ -119,7 +117,6 @@ public class Calculator {
     public Calendar calculateDueDateAndTime(Calendar submitTimeAndDate, int turnaround) {
         int turnaroundInMinutes = turnaround * 60;
         Calendar timeTracker = submitTimeAndDate;
-        System.out.println(timeTracker.getTimeInMillis()/1000/60);
         int timeOfSubmitInMinutes = calculateTimeInMinutes(timeTracker.get(Calendar.HOUR_OF_DAY), (timeTracker.get(Calendar.MINUTE)));
         int firstDaysWorkInMinutes = workdayEndInMinutes - timeOfSubmitInMinutes;
         if (firstDaysWorkInMinutes > turnaroundInMinutes) {
